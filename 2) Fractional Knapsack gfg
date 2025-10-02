@@ -1,0 +1,124 @@
+🔹 Problem Statement
+
+You are given n items with weights and values.
+
+A knapsack can hold weight W.
+
+You can take fractions of items.
+
+Maximize total value.
+
+🔹 Approach (Greedy)
+
+Compute value-to-weight ratio for each item.
+
+Sort items in descending order of ratio.
+
+Pick items one by one:
+
+If full item fits → take whole.
+
+Otherwise → take fraction of what fits.
+
+🔹 Annotated C++ Code with Inline Dry Run
+#include <bits/stdc++.h>
+using namespace std;
+
+struct Item {
+    int value, weight;
+    Item(int v, int w) : value(v), weight(w) {}
+};
+
+// Comparator: sort by (value/weight) ratio in descending order
+bool cmp(Item a, Item b) {
+    double r1 = (double)a.value / a.weight;
+    double r2 = (double)b.value / b.weight;
+    return r1 > r2;
+}
+
+/*
+Fractional Knapsack Problem
+---------------------------
+Steps:
+1. Sort items by value/weight ratio (descending).
+2. Traverse items, add whole if it fits else fraction.
+3. Keep track of total value.
+*/
+
+double fractionalKnapsack(int W, vector<Item>& items) {
+    sort(items.begin(), items.end(), cmp);
+
+    double finalValue = 0.0; // store total profit
+
+    for (int i = 0; i < items.size(); i++) {
+        if (items[i].weight <= W) {
+            // If item can be taken fully
+            W -= items[i].weight;
+            finalValue += items[i].value;
+        } else {
+            // Take fraction of remaining capacity
+            finalValue += items[i].value * ((double)W / items[i].weight);
+            break; // Knapsack is full
+        }
+
+        /*
+        === Dry Run Example ===
+        n = 3, W = 50
+        values = [60, 100, 120]
+        weights = [10, 20, 30]
+
+        Step 1: Calculate ratios
+        60/10 = 6.0
+        100/20 = 5.0
+        120/30 = 4.0
+
+        Sorted order by ratio: (60,10), (100,20), (120,30)
+
+        Step 2: Iterate
+        Capacity W = 50
+
+        - Item1: (60,10)
+          weight=10 <= W(50) → take whole
+          finalValue = 60, W = 40
+
+        - Item2: (100,20)
+          weight=20 <= W(40) → take whole
+          finalValue = 160, W = 20
+
+        - Item3: (120,30)
+          weight=30 > W(20) → take fraction
+          fraction = 20/30 = 0.666...
+          add = 120 * 0.666... = 80
+          finalValue = 240
+          W = 0 → stop
+
+        Final Answer = 240
+        =======================
+        */
+    }
+
+    return finalValue;
+}
+
+int main() {
+    int W = 50; // capacity
+    vector<Item> items;
+    items.push_back(Item(60, 10));
+    items.push_back(Item(100, 20));
+    items.push_back(Item(120, 30));
+
+    cout << "Maximum value in Knapsack = " 
+         << fractionalKnapsack(W, items) << endl;
+
+    return 0;
+}
+
+🔹 Complexity
+
+Sorting: O(n log n)
+
+Iteration: O(n)
+
+Overall: O(n log n)
+
+Space: O(1) (ignoring sorting).
