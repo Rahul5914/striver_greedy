@@ -1,0 +1,115 @@
+✅ Annotated C++ Code + Inline Dry Run inside comments.
+
+🔹 Problem Statement (short)
+
+Each child has a greed factor g[i] (minimum cookie size they need).
+
+Each cookie has a size s[j].
+
+Goal: Assign at most one cookie to each child. A child i can be satisfied if there exists a cookie j such that s[j] >= g[i].
+
+Maximize the number of satisfied children.
+
+🔹 Approach (Greedy)
+
+Sort both greed factors g and cookie sizes s.
+
+Use two pointers: one for children, one for cookies.
+
+If the current cookie can satisfy the current child → assign it and move both pointers.
+
+Otherwise, move only the cookie pointer to try a larger cookie.
+
+🔹 Annotated C++ Code with Inline Dry Run
+#include <bits/stdc++.h>
+using namespace std;
+
+/*
+455. Assign Cookies (Greedy)
+--------------------------------
+Steps:
+1. Sort g (children's greed) and s (cookies' sizes).
+2. Use two pointers:
+   - i -> child index
+   - j -> cookie index
+3. If s[j] >= g[i] → assign cookie j to child i (i++, j++).
+   Else, j++ (try next bigger cookie).
+4. Result = i (number of satisfied children).
+*/
+
+int findContentChildren(vector<int>& g, vector<int>& s) {
+    sort(g.begin(), g.end()); // sort greed factors
+    sort(s.begin(), s.end()); // sort cookie sizes
+
+    int i = 0; // pointer for children
+    int j = 0; // pointer for cookies
+
+    while (i < g.size() && j < s.size()) {
+        if (s[j] >= g[i]) {
+            // cookie j satisfies child i
+            i++; // move to next child
+            j++; // move to next cookie
+        } else {
+            // cookie too small → try bigger one
+            j++;
+        }
+
+        /*
+        === Dry Run Example ===
+        g = [1,2,3], s = [1,1]
+
+        After sorting:
+        g = [1,2,3]
+        s = [1,1]
+
+        Iteration 1:
+        i=0 (child with greed=1), j=0 (cookie size=1)
+        s[0] >= g[0] → 1 >= 1 ✅
+        Assign cookie → i=1, j=1
+
+        Iteration 2:
+        i=1 (child with greed=2), j=1 (cookie size=1)
+        s[1] >= g[1]? → 1 >= 2 ❌
+        Can't satisfy, so j=2
+
+        Loop ends (j == s.size)
+
+        Final answer = i = 1
+        (Only 1 child satisfied)
+        ========================
+
+        Another Example:
+        g = [1,2], s = [1,2,3]
+
+        After sorting:
+        g = [1,2], s = [1,2,3]
+
+        Iteration 1:
+        i=0, j=0 → 1 >= 1 ✅ → assign → i=1, j=1
+        Iteration 2:
+        i=1, j=1 → 2 >= 2 ✅ → assign → i=2, j=2
+
+        Loop ends, i=2
+        Final Answer = 2 (both children satisfied)
+        */
+    }
+
+    return i; // number of satisfied children
+}
+
+int main() {
+    vector<int> g = {1,2,3};
+    vector<int> s = {1,1};
+    cout << "Max satisfied children: " << findContentChildren(g, s) << endl;
+    return 0;
+}
+
+🔹 Complexity
+
+Sorting: O(n log n + m log m)
+
+Iteration: O(n + m)
+
+Overall: O(n log n + m log m)
+
+Space: O(1) (ignoring sort space).
