@@ -1,0 +1,121 @@
+🔹 Problem Restatement
+
+You are given a string s containing only:
+
+'(' → open parenthesis
+
+')' → close parenthesis
+
+'*' → wildcard that can act as '(', ')', or "" (empty)
+
+Return true if the string can be a valid parenthesis string.
+
+🔹 Step 1: Logic & Intuition
+
+The challenge = * can represent 3 choices → brute force = exponential.
+We need Greedy thinking.
+
+👉 Intuition:
+
+Keep track of the possible range of open brackets as we scan left to right:
+
+low = minimum open parentheses we must have (assuming * as ) when possible).
+
+high = maximum open parentheses we can have (assuming * as ().
+
+For each character:
+
+'(' → increase both low and high (+1 open).
+
+')' → decrease both low and high (close one open).
+
+'*' →
+
+If treated as ) → decrease low.
+
+If treated as ( → increase high.
+
+So effectively: low--, high++.
+
+🔹 Rule:
+
+low can’t go negative → reset to 0.
+
+If at any point high < 0 → invalid (more ) than possible opens).
+
+At the end → valid if low == 0.
+
+🔹 Step 2: Example Dry Run
+
+s = "(*))"
+
+Start: low=0, high=0
+
+( → low=1, high=1
+
+* → low=0 (1-1), high=2 (1+1)
+
+) → low=0 (0-1 → reset), high=1
+
+) → low=0 (0-1 → reset), high=0
+
+✅ At the end low=0 → valid.
+
+🔹 Step 3: Annotated Code with Inline Dry Run
+class Solution {
+public:
+    bool checkValidString(string s) {
+        int low = 0, high = 0;  // possible range of open parentheses
+        
+        for (char c : s) {
+            if (c == '(') {
+                // one more open bracket
+                low++;  
+                high++;
+                
+            } else if (c == ')') {
+                // one close bracket
+                low--;  
+                high--;
+                
+            } else { // c == '*'
+                // treat as ')' for low (reduce opens), '(' for high (increase opens)
+                low--;
+                high++;
+            }
+            
+            // Dry run trace in-line:
+            // Example "(*))"
+            // Step 1 '(' -> low=1, high=1
+            // Step 2 '*' -> low=0, high=2
+            // Step 3 ')' -> low=0, high=1
+            // Step 4 ')' -> low=0, high=0
+            
+            if (high < 0) return false;  // too many ')'
+            if (low < 0) low = 0;        // low can't go negative
+        }
+        
+        // valid if all opens can be closed
+        return low == 0;
+    }
+};
+
+🔹 Step 4: Complexity
+
+Time Complexity: O(n) (one scan).
+
+Space Complexity: O(1) (just two counters).
+
+🔹 Step 5: Pattern & Trick
+
+This is a range greedy problem → keep track of min and max open parentheses.
+
+* widens the possible range:
+
+decreases min (it could be )),
+
+increases max (it could be ().
+
+At the end, if min = 0 → ✅ valid.
+
+👉 This is a parenthesis + wildcard variation → pattern often called Greedy Balance Range.
