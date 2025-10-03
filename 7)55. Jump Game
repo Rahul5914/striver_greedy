@@ -1,0 +1,200 @@
+📌 Problem Statement (Jump Game I)
+
+You are given an integer array nums where each element represents your maximum jump length at that position.
+
+Initially, you are at the first index.
+
+Your goal is to reach the last index.
+
+Return true if you can reach the last index, otherwise return false.
+
+Example 1
+
+Input:
+
+nums = [2,3,1,1,4]
+
+
+Output:
+
+true
+
+
+Explanation: Jump 1 step from index 0 to 1, then 3 steps to the last index.
+
+Example 2
+
+Input:
+
+nums = [3,2,1,0,4]
+
+
+Output:
+
+false
+
+
+Explanation: You will always reach index 3, but its jump length is 0, so you cannot reach index 4.
+
+🧩 Approaches
+1) Recursive (Naive)
+
+Idea: At each index i, try all jumps from 1 to nums[i] and check if any leads to the last index.
+
+Recurrence Relation:
+
+canReach(i) = true   if i == n-1
+             = OR(canReach(i+j)) for all 1 <= j <= nums[i], if i < n
+
+
+C++ Code (Recursive)
+
+class Solution {
+public:
+    bool canJumpFrom(int i, vector<int>& nums) {
+        int n = nums.size();
+        if (i == n-1) return true; // reached last index
+        
+        int maxJump = min(i + nums[i], n-1);
+        for (int next = i+1; next <= maxJump; next++) {
+            if (canJumpFrom(next, nums)) return true;
+        }
+        return false;
+    }
+    
+    bool canJump(vector<int>& nums) {
+        return canJumpFrom(0, nums);
+    }
+};
+
+
+Complexity:
+
+Time: Exponential (worst O(2^n)) → TLE for large n
+
+Space: O(n) recursion depth
+
+2) Memoization (Top-Down DP)
+
+Store whether from index i we can reach the last index.
+
+States:
+
+dp[i] = -1 → unvisited
+
+0 → cannot reach
+
+1 → can reach
+
+C++ Code (Memoization)
+
+class Solution {
+public:
+    vector<int> dp;
+    
+    bool canJumpFrom(int i, vector<int>& nums) {
+        int n = nums.size();
+        if (i == n-1) return true;
+        if (dp[i] != -1) return dp[i];
+        
+        int maxJump = min(i + nums[i], n-1);
+        for (int next = i+1; next <= maxJump; next++) {
+            if (canJumpFrom(next, nums)) return dp[i] = 1;
+        }
+        return dp[i] = 0;
+    }
+    
+    bool canJump(vector<int>& nums) {
+        dp.assign(nums.size(), -1);
+        return canJumpFrom(0, nums);
+    }
+};
+
+
+Complexity:
+
+Time: O(n²) (because at worst each index explores multiple jumps)
+
+Space: O(n)
+
+3) Tabulation (Bottom-Up DP)
+
+Iteratively check reachability:
+
+Maintain a boolean dp[i] = can we reach index i?
+
+Initialize dp[0]=true.
+
+For each index, update reachable next positions.
+
+C++ Code (Tabulation)
+
+class Solution {
+public:
+    bool canJump(vector<int>& nums) {
+        int n = nums.size();
+        vector<bool> dp(n, false);
+        dp[0] = true;
+        
+        for (int i = 0; i < n; i++) {
+            if (!dp[i]) continue; // skip unreachable
+            int maxJump = min(i + nums[i], n-1);
+            for (int j = i+1; j <= maxJump; j++) {
+                dp[j] = true;
+            }
+        }
+        return dp[n-1];
+    }
+};
+
+
+Complexity:
+
+Time: O(n²)
+
+Space: O(n)
+
+4) Greedy (Optimized)
+
+💡 Trick: While traversing, keep track of the farthest index reachable (maxReach).
+
+At index i, if i > maxReach → stuck, return false.
+
+Update maxReach = max(maxReach, i + nums[i]).
+
+If at the end, maxReach >= n-1 → true.
+
+C++ Code (Greedy Optimal)
+
+class Solution {
+public:
+    bool canJump(vector<int>& nums) {
+        int n = nums.size();
+        int maxReach = 0;
+        
+        for (int i = 0; i < n; i++) {
+            if (i > maxReach) return false; // can't reach this index
+            maxReach = max(maxReach, i + nums[i]);
+        }
+        
+        return true;
+    }
+};
+
+
+Complexity:
+
+Time: O(n)
+
+Space: O(1)
+
+🎯 Pattern Recognition
+
+Jump Game I → reachability problem → Greedy works.
+
+Jump Game II → minimum jumps → needs DP/Greedy BFS-like expansion.
+
+Trick: Keep updating the farthest reachable index.
+
+✅ For interviews: Always first say “This is like reachability with greedy max jump”.
+Then code the Greedy O(n) approach.
