@@ -1,0 +1,136 @@
+435. Non-overlapping Intervals is the inverse problem of merging.
+Let’s go step by step in the same flow I used for Merge Intervals, with full dry run, recurrence intuition, and annotated code.
+
+📌 Problem Statement (LeetCode 435)
+
+You are given an array of intervals intervals[i] = [start_i, end_i].
+You need to remove the minimum number of intervals so that the rest of the intervals are non-overlapping.
+
+Example 1
+
+Input: intervals = [[1,2],[2,3],[3,4],[1,3]]
+Output: 1
+Explanation: Remove [1,3], then the rest are non-overlapping.
+
+
+Example 2
+
+Input: intervals = [[1,2],[1,2],[1,2]]
+Output: 2
+Explanation: Remove two [1,2], leave only one.
+
+🔑 Key Idea
+
+Very similar to Activity Selection Problem / Maximum Meetings in One Room.
+
+Instead of merging, we ask:
+👉 "How many intervals can I keep non-overlapping?"
+👉 Answer = Total intervals − Max non-overlapping intervals kept.
+
+Greedy strategy:
+
+Sort intervals by end time.
+
+Always pick the interval that ends earliest (so it leaves room for the next one).
+
+Count how many we can keep.
+
+🛠 Step-by-Step Solution
+Step 1: Sort by end time
+sort(intervals.begin(), intervals.end(), [](auto &a, auto &b){
+    return a[1] < b[1];  // sort by interval end
+});
+
+Step 2: Greedy selection
+
+Keep track of the end of the last chosen interval (prevEnd).
+
+If current interval’s start ≥ prevEnd → non-overlapping, keep it.
+
+Else → overlapping, remove it (just don’t count it).
+
+Step 3: Return removals
+
+removals = total_intervals - kept_non_overlapping_intervals.
+
+🔎 Dry Run Example
+
+Input:
+
+[[1,2],[2,3],[3,4],[1,3]]
+
+
+Sort by end:
+
+[[1,2],[2,3],[1,3],[3,4]]
+
+
+Start with prevEnd = -∞, count=0.
+
+Interval [1,2]: 1 >= -∞ → keep → count=1, prevEnd=2.
+
+Interval [2,3]: 2 >= 2 → keep → count=2, prevEnd=3.
+
+Interval [1,3]: 1 >= 3? ❌ → overlap → skip.
+
+Interval [3,4]: 3 >= 3 → keep → count=3, prevEnd=4.
+
+Kept = 3. Total = 4.
+Removals = 4-3 = 1. ✅
+
+✅ C++ Code with Inline Dry Run
+class Solution {
+public:
+    int eraseOverlapIntervals(vector<vector<int>>& intervals) {
+        if(intervals.empty()) return 0;
+
+        // Step 1: Sort by end time
+        sort(intervals.begin(), intervals.end(), [](auto &a, auto &b){
+            return a[1] < b[1];
+        });
+        // Dry run: [[1,2],[2,3],[1,3],[3,4]]
+
+        int count = 0;        // how many non-overlapping intervals we can keep
+        int prevEnd = INT_MIN; // end of last chosen interval
+
+        for(auto &interval : intervals) {
+            // Check if non-overlapping
+            if(interval[0] >= prevEnd) {
+                // Dry run: [1,2], -inf → keep → count=1, prevEnd=2
+                //          [2,3], 2≥2 → keep → count=2, prevEnd=3
+                //          [1,3], 1≥3? no → skip
+                //          [3,4], 3≥3 → keep → count=3, prevEnd=4
+                count++;
+                prevEnd = interval[1]; 
+            }
+            // else → overlapping, skip
+        }
+
+        // Total removals = total intervals - max kept
+        return intervals.size() - count; // 4 - 3 = 1
+    }
+};
+
+⏱ Complexity
+
+Sorting: O(n log n)
+
+Loop: O(n)
+
+Total: O(n log n)
+
+Space: O(1) (in-place sort).
+
+🧠 Pattern Recognition
+
+Merge Intervals (56): "Merge overlapping → return merged list."
+
+Non-overlapping Intervals (435): "Count non-overlapping → remove minimum to achieve that."
+
+Interval Scheduling (Greedy): Always sort by end time when you want max non-overlapping.
+
+👉 Trick:
+
+If problem says merge → sort by start.
+
+If problem says non-overlapping / max intervals → sort by end.
