@@ -1,0 +1,128 @@
+Problem: LRU Cache (LeetCode 146)
+
+Goal: Implement an LRU cache supporting get and put in O(1) time.
+
+STL-based Approach Explanation
+
+We use:
+
+list<pair<int,int>> dq – a doubly linked list storing {key,value} in usage order:
+
+Front: Most recently used
+
+Back: Least recently used
+
+unordered_map<int, list<pair<int,int>>::iterator> mp – maps key → pointer to node in list
+
+Enables O(1) access to any node
+
+Key Operations
+
+get(key):
+
+If key exists:
+
+Move the node to the front (splice) → mark as most recently used
+
+Return the value
+
+Else → return -1
+
+put(key, value):
+
+If key exists → update value, move to front
+
+Else →
+
+If cache full → remove back node (least recently used) and erase from map
+
+Insert new {key,value} at front and update map
+
+C++ Code with Inline Dry Run
+#include <bits/stdc++.h>
+using namespace std;
+
+class LRUCache {
+private:
+    int capacity; // Max size of cache
+    list<pair<int,int>> dq; // Stores {key,value}, front = MRU, back = LRU
+    unordered_map<int, list<pair<int,int>>::iterator> mp; // key -> node pointer
+
+public:
+    LRUCache(int cap) {
+        capacity = cap;
+    }
+
+    int get(int key) {
+        if(mp.find(key) == mp.end()) {
+            // Key not found
+            return -1;
+        }
+        // Move the accessed node to front (most recently used)
+        dq.splice(dq.begin(), dq, mp[key]); 
+        // splice: moves node mp[key] to dq.begin()
+        return mp[key]->second;
+    }
+
+    void put(int key, int value) {
+        if(mp.find(key) != mp.end()) {
+            // Key exists → update value
+            dq.splice(dq.begin(), dq, mp[key]); // move to front
+            mp[key]->second = value;
+        } else {
+            // Key does not exist
+            if(dq.size() == capacity) {
+                // Cache full → remove LRU
+                int k = dq.back().first; // key of LRU
+                mp.erase(k);             // remove from map
+                dq.pop_back();           // remove from list
+            }
+            // Insert new node at front
+            dq.push_front({key,value});
+            mp[key] = dq.begin();
+        }
+    }
+};
+
+Inline Dry Run Example
+
+Operations:
+
+LRUCache cache(2);
+cache.put(1, 1); // Cache: {1=1}
+cache.put(2, 2); // Cache: {2=2,1=1}
+cache.get(1);    // Returns 1, Cache after move: {1=1,2=2}
+cache.put(3, 3); // Evicts key 2, Cache: {3=3,1=1}
+cache.get(2);    // Returns -1
+cache.put(4, 4); // Evicts key 1, Cache: {4=4,3=3}
+cache.get(1);    // Returns -1
+cache.get(3);    // Returns 3
+cache.get(4);    // Returns 4
+
+Step-by-Step Dry Run Table
+Step	Operation	List (Front→Back)	Map Keys	Notes
+1	put(1,1)	1	{1}	Insert 1 at front
+2	put(2,2)	2,1	{1,2}	Insert 2 at front
+3	get(1)	1,2	{1,2}	Move 1 to front, return 1
+4	put(3,3)	3,1	{1,3}	Evict LRU 2, insert 3 at front
+5	get(2)	3,1	{1,3}	Not found → -1
+6	put(4,4)	4,3	{3,4}	Evict LRU 1, insert 4 at front
+7	get(1)	4,3	{3,4}	Not found → -1
+8	get(3)	3,4	{3,4}	Move 3 to front → return 3
+9	get(4)	4,3	{3,4}	Move 4 to front → return 4
+Complexity Analysis
+Operation	Time Complexity	Space Complexity
+get	O(1)	-
+put	O(1)	O(n)
+Overall	O(1) per op	O(capacity)
+Notes / Key Points for Exams or Interviews
+
+list + unordered_map = standard STL LRU pattern
+
+Front of list = most recently used, back = least recently used
+
+splice efficiently moves a node in O(1)
+
+Always update map when inserting or evicting
+
+Dry run small examples to understand eviction & MRU updates
