@@ -1,0 +1,243 @@
+🔹 Problem Restatement
+
+We have:
+
+deadline[i]: the last time slot a job can finish.
+
+profit[i]: profit if we finish that job.
+
+Each job takes 1 unit time.
+
+Only 1 job per unit time.
+
+👉 Goal: Find number of jobs scheduled + maximum total profit.
+
+🔹 Intuition
+
+We want maximum profit, so always try higher profit jobs first.
+
+A job with later deadline should be placed as late as possible (before its deadline), so earlier slots remain open for other jobs.
+
+Greedy approach fits perfectly here.
+
+🔹 Approach
+
+Pair each job as (profit, deadline).
+
+Sort jobs in descending order of profit.
+
+Find the maximum deadline (max slot we may need).
+
+Create a slots[] array of size maxDeadline+1, initialized as free (-1).
+
+For each job:
+
+Try to place it in the latest free slot ≤ deadline.
+
+If placed → count++, add profit.
+
+Return {count, profit}.
+
+🔹 Annotated C++ Code with Inline Dry Run
+class Solution {
+  public:
+    vector<int> jobSequencing(vector<int> &deadline, vector<int> &profit) {
+        int n = deadline.size();
+
+        // Step 1: Pair jobs as (profit, deadline)
+        vector<pair<int,int>> jobs;
+        for(int i=0; i<n; i++) {
+            jobs.push_back({profit[i], deadline[i]});
+        }
+
+        // Step 2: Sort jobs by profit (descending)
+        sort(jobs.rbegin(), jobs.rend()); 
+        // Example: deadlines=[4,1,1,1], profit=[20,10,40,30]
+        // jobs before sort: {(20,4), (10,1), (40,1), (30,1)}
+        // jobs after sort:  {(40,1), (30,1), (20,4), (10,1)}
+
+        // Step 3: Find max deadline
+        int maxDeadline = 0;
+        for(auto &job : jobs) {
+            maxDeadline = max(maxDeadline, job.second);
+        }
+        // Example: maxDeadline = 4
+
+        // Step 4: Create slot array
+        vector<int> slot(maxDeadline+1, -1); // index=1..maxDeadline
+
+        int count = 0, totalProfit = 0;
+
+        // Step 5: Place jobs greedily
+        for(auto &job : jobs) {
+            int p = job.first;   // profit
+            int d = job.second;  // deadline
+
+            // Try to find a free slot from d → 1
+            for(int t = d; t > 0; t--) {
+                if(slot[t] == -1) {
+                    slot[t] = p; // schedule job
+                    count++;
+                    totalProfit += p;
+                    break; // stop after placing job
+                }
+            }
+
+            // Dry run for example:
+            // job (40,1): slot[1] free → place it → count=1, profit=40
+            // job (30,1): slot[1] taken → skip
+            // job (20,4): slot[4] free → place it → count=2, profit=60
+            // job (10,1): slot[1] taken → skip
+        }
+
+        return {count, totalProfit}; 
+    }
+};
+
+🔹 Example Dry Run
+Input:
+deadline = [4, 1, 1, 1]
+profit   = [20, 10, 40, 30]
+
+Steps:
+
+Jobs paired: [(20,4), (10,1), (40,1), (30,1)]
+
+Sorted by profit: [(40,1), (30,1), (20,4), (10,1)]
+
+Max deadline = 4 → slots = [-1,-1,-1,-1,-1]
+
+Process jobs:
+
+Job(40,1): slot[1] free → schedule → slots=[-1,40,-1,-1,-1]
+→ count=1, profit=40
+
+Job(30,1): slot[1] taken → skip.
+
+Job(20,4): slot[4] free → schedule → slots=[-1,40,-1,-1,20]
+→ count=2, profit=60
+
+Job(10,1): slot[1] taken → skip.
+
+✅ Output = [2, 60]
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+the optimized DSU Job Sequencing solution with inline dry run inside the code, so you can see how it works step by step.
+
+🔹 Annotated C++ Code with Dry Run
+class Solution {
+  public:
+    // DSU Find function with path compression
+    int findParent(int x, vector<int>& parent) {
+        if(parent[x] == x) return x;
+        return parent[x] = findParent(parent[x], parent);
+    }
+
+    vector<int> jobSequencing(vector<int> &deadline, vector<int> &profit) {
+        int n = deadline.size();
+        vector<pair<int,int>> jobs;
+
+        // Step 1: Pair jobs as (profit, deadline)
+        for(int i=0; i<n; i++) {
+            jobs.push_back({profit[i], deadline[i]});
+        }
+
+        // Step 2: Sort jobs by profit in descending order
+        sort(jobs.rbegin(), jobs.rend());
+        // Example: deadline=[2,1,2,1,1], profit=[100,19,27,25,15]
+        // jobs after sort = {(100,2), (27,2), (25,1), (19,1), (15,1)}
+
+        // Step 3: Find maximum deadline
+        int maxDeadline = 0;
+        for(auto &job : jobs) {
+            maxDeadline = max(maxDeadline, job.second);
+        }
+        // Example: maxDeadline = 2
+
+        // Step 4: Initialize DSU parent array
+        vector<int> parent(maxDeadline+1);
+        for(int i=0; i<=maxDeadline; i++) parent[i] = i;
+        // parent = [0,1,2] initially
+        // Meaning: slot 1 is free, slot 2 is free
+
+        int count = 0, totalProfit = 0;
+
+        // Step 5: Iterate through jobs
+        for(auto &job : jobs) {
+            int p = job.first;   // profit
+            int d = job.second;  // deadline
+
+            // Find the latest available slot ≤ d
+            int available = findParent(d, parent);
+
+            if(available > 0) { 
+                // If slot found
+                count++;
+                totalProfit += p;
+
+                // Mark this slot as used by linking to previous slot
+                parent[available] = findParent(available-1, parent);
+
+                // ---------------- Dry Run Inline ----------------
+                // Job (100,2): find(2)=2 → place at slot 2
+                // count=1, profit=100, parent=[0,1,1]
+                //
+                // Job (27,2): find(2)=find(1)=1 → place at slot 1
+                // count=2, profit=127, parent=[0,0,1]
+                //
+                // Job (25,1): find(1)=0 → no slot, skip
+                // Job (19,1): find(1)=0 → skip
+                // Job (15,1): find(1)=0 → skip
+                // -------------------------------------------------
+            }
+        }
+
+        return {count, totalProfit};
+    }
+};
+
+🔹 Example Dry Run Walkthrough
+Input:
+deadline = [2, 1, 2, 1, 1]
+profit   = [100, 19, 27, 25, 15]
+
+Processing:
+
+Jobs sorted: (100,2), (27,2), (25,1), (19,1), (15,1)
+
+parent = [0,1,2]
+
+Job(100,2): find(2)=2 → slot 2 free → assign → profit=100, count=1
+→ parent[2]=find(1)=1 → parent=[0,1,1]
+
+Job(27,2): find(2)=find(1)=1 → slot 1 free → assign → profit=127, count=2
+→ parent[1]=find(0)=0 → parent=[0,0,1]
+
+Job(25,1): find(1)=0 → no slot → skip
+
+Job(19,1): find(1)=0 → skip
+
+Job(15,1): find(1)=0 → skip
+
+✅ Final Output = [2, 127]
+
+🔹 Complexity
+
+Sorting = O(n log n)
+
+Each findParent() = O(α(n)) ≈ O(1)
+
+Total = O(n log n) → Fast enough for n=10^5
