@@ -1,0 +1,117 @@
+Problem Statement
+Given an integer array ratings representing the rating of each child:
+
+Each child must have at least 1 candy.
+
+Children with higher rating than neighbors must get more candies than neighbors.
+
+Return the minimum number of candies needed.
+
+Example:
+
+makefile
+Copy code
+Input: ratings = [1,0,2]
+Output: 5
+Explanation: candies = [2,1,2]
+Intuition
+The problem is local comparison with neighbors but global effect.
+
+Directly counting peaks or valleys may fail because increasing one child may require adjusting neighbors.
+
+✅ Idea: Two-pass greedy approach:
+
+Left-to-right → satisfy left neighbor rule.
+
+Right-to-left → satisfy right neighbor rule.
+
+This ensures minimum candies because each child gets the max required by neighbors.
+
+Approach
+Initialize a candies array with 1 for all children.
+
+Left to Right pass:
+
+If ratings[i] > ratings[i-1], assign candies[i] = candies[i-1] + 1.
+
+Right to Left pass:
+
+If ratings[i] > ratings[i+1], assign candies[i] = max(candies[i], candies[i+1] + 1).
+
+Sum the candies array and return.
+
+Two-pass ensures both left and right neighbor conditions are satisfied.
+
+Code with Inline Dry Run Example
+cpp
+Copy code
+#include <bits/stdc++.h>
+using namespace std;
+
+class Solution {
+public:
+    int candy(vector<int>& ratings) {
+        int n = ratings.size();
+        vector<int> candies(n, 1); // Step 1: Give 1 candy to everyone
+
+        // ---------------------------
+        // Step 2: Left to Right
+        // ---------------------------
+        for (int i = 1; i < n; i++) {
+            if (ratings[i] > ratings[i-1]) {
+                candies[i] = candies[i-1] + 1;
+            }
+
+            // Inline dry run explanation:
+            // Example: ratings = [1,0,2]
+            // i=1: 0 > 1? No → candies[1] = 1
+            // i=2: 2 > 0? Yes → candies[2] = candies[1]+1 = 2
+            // candies = [1,1,2]
+        }
+
+        // ---------------------------
+        // Step 3: Right to Left
+        // ---------------------------
+        for (int i = n-2; i >= 0; i--) {
+            if (ratings[i] > ratings[i+1]) {
+                candies[i] = max(candies[i], candies[i+1]+1);
+            }
+
+            // Inline dry run explanation:
+            // i=1: 0 > 2? No → candies[1]=1
+            // i=0: 1 > 0? Yes → candies[0] = max(1, 1+1)=2
+            // candies = [2,1,2]
+        }
+
+        // ---------------------------
+        // Step 4: Sum all candies
+        // ---------------------------
+        int total = 0;
+        for (int c : candies) total += c;
+
+        // Dry run explanation:
+        // candies = [2,1,2] → total = 5
+        return total;
+    }
+};
+Dry Run Table for [1,0,2]
+Step	i	ratings[i]	candies	Comment
+L→R	1	0	[1,1,1]	0 ≤ 1 → no change
+L→R	2	2	[1,1,2]	2 > 0 → candies[2]=1+1=2
+R→L	1	0	[1,1,2]	0 ≤ 2 → no change
+R→L	0	1	[2,1,2]	1 > 0 → candies[0]=max(1,1+1)=2
+SUM	-	-	[2,1,2]	total=5
+
+Time & Space Complexity
+Time: O(n) → two passes of array
+
+Space: O(n) → candies array
+
+Can be optimized to O(1) if modifying in-place cleverly.
+
+Key Takeaways / Tricks
+Always use two-pass greedy for “minimum satisfying neighbor condition” problems.
+
+Never try single-pass with peaks only → fails edge cases like [1,2,2].
+
+Dry-run with small examples ensures correctness.
