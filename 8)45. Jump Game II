@@ -1,0 +1,104 @@
+Problem Statement (LeetCode 45)
+
+You are given an integer array nums where each element represents your maximum jump length at that position. Your goal is to reach the last index in the minimum number of jumps.
+
+Return the minimum number of jumps to reach the last index.
+
+Example:
+
+Input: nums = [2,3,1,1,4]
+Output: 2
+Explanation: Jump 1 step from index 0 to 1, then 3 steps to the last index.
+
+Intuition
+
+At each position i, you can jump up to nums[i] steps forward.
+
+The goal is minimum jumps, not number of ways.
+
+Think Greedy:
+
+You want to make the jump that takes you farthest in the next step.
+
+So keep track of the current jump range and next farthest index you can reach.
+
+We can do level-wise traversal (similar to BFS), where each "level" is a jump.
+
+Approach
+Greedy / BFS-Like Approach
+
+Initialize:
+
+jumps = 0 → counts the number of jumps.
+
+current_end = 0 → max index reachable with the current number of jumps.
+
+farthest = 0 → farthest index reachable in the next jump.
+
+Iterate through nums (except last element):
+
+Update farthest = max(farthest, i + nums[i]).
+
+If i == current_end → we finished this jump range:
+
+Increment jumps.
+
+Move current_end = farthest.
+
+Return jumps.
+
+Time Complexity: O(n) → single pass
+Space Complexity: O(1) → constant extra space
+
+Annotated Code (C++)
+#include <bits/stdc++.h>
+using namespace std;
+
+class Solution {
+public:
+    int jump(vector<int>& nums) {
+        int n = nums.size();
+        if (n <= 1) return 0;  // Already at last index
+        
+        int jumps = 0;        // Number of jumps made
+        int current_end = 0;  // End of current jump range
+        int farthest = 0;     // Farthest index reachable from current range
+
+        for (int i = 0; i < n - 1; i++) { // We do not need to process last index
+            farthest = max(farthest, i + nums[i]); // Update farthest reachable
+            
+            // When we reach the end of the current jump range
+            if (i == current_end) {
+                jumps++;                 // Make a jump
+                current_end = farthest;  // Update the current jump range
+                
+                // Optional: early exit if we can reach last index
+                if (current_end >= n - 1) break;
+            }
+        }
+        return jumps;
+    }
+};
+
+Inline Dry Run Example
+
+Input: nums = [2,3,1,1,4]
+
+i	nums[i]	farthest	current_end	jumps	Explanation
+0	2	2	0	0	Start: can jump to 2
+0 == current_end → jump++		current_end = farthest = 2	1	Jump 1: reach index 2	
+1	3	max(2,1+3)=4	2	1	Update farthest: can reach 4
+2	1	max(4,2+1)=4	2	1	i==current_end → jump++
+End				2	Minimum jumps = 2
+
+✅ Works perfectly.
+
+Key Points / Tricks
+
+Always track farthest reach from current range.
+
+Increment jumps only when you finish the current jump range.
+
+Do not iterate to the last element because you don’t need to jump from the last index.
+
+Greedy works here because we want minimum jumps, not paths.
