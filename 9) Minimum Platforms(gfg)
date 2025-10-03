@@ -1,0 +1,115 @@
+Problem Restatement
+
+You are given arr[] (arrival times) and dep[] (departure times) of trains.
+
+Find the minimum number of platforms required so that no train waits.
+
+Intuition
+
+If a train arrives before another train departs, then they both need platforms.
+
+This is equivalent to finding the maximum number of overlapping intervals at any point.
+
+Approach 1 (Efficient – Sorting + Two Pointers)
+
+Sort both arr[] and dep[].
+
+Use two pointers i (for arrivals) and j (for departures).
+
+Traverse:
+
+If arr[i] <= dep[j]:
+→ A new train arrives before previous departs
+→ Need a new platform → platforms++ and i++.
+
+Else (arr[i] > dep[j]):
+→ One train departs before next arrives
+→ Free a platform → platforms-- and j++.
+
+Keep track of the maximum platforms used during traversal.
+
+Code with Inline Dry Run
+#include <bits/stdc++.h>
+using namespace std;
+
+class Solution {
+public:
+    int minPlatform(vector<int>& arr, vector<int>& dep) {
+        int n = arr.size();
+
+        sort(arr.begin(), arr.end()); // sort arrivals
+        sort(dep.begin(), dep.end()); // sort departures
+
+        int i = 0, j = 0;
+        int platforms = 0;     // current platforms in use
+        int maxPlatforms = 0;  // result
+
+        // Traverse while trains are left
+        while (i < n && j < n) {
+            if (arr[i] <= dep[j]) {
+                // Train arrives before previous one departs → need platform
+                platforms++;
+                maxPlatforms = max(maxPlatforms, platforms);
+                i++;
+
+                // Dry Run Example: arr=[900,940,950], dep=[910,1200,1120]
+                // i=0: arr[0]=900 ≤ dep[0]=910 → platforms=1
+            }
+            else {
+                // Train departs → free a platform
+                platforms--;
+                j++;
+
+                // Dry Run continues:
+                // arr[1]=940 > dep[0]=910 → one train left, platforms--
+            }
+        }
+
+        return maxPlatforms;
+    }
+};
+
+Dry Run Example
+
+Input:
+
+arr = [900, 940, 950, 1100, 1500, 1800]
+dep = [910, 1200, 1120, 1130, 1900, 2000]
+
+
+Sorted:
+
+arr = [900, 940, 950, 1100, 1500, 1800]
+dep = [910, 1120, 1130, 1200, 1900, 2000]
+
+Step	i (arr)	j (dep)	Condition	Platforms	Max
+0	900	910	900 ≤ 910 → ++	1	1
+1	940	910	940 > 910 → --	0	1
+2	940	1120	940 ≤ 1120 → ++	1	1
+3	950	1120	950 ≤ 1120 → ++	2	2
+4	1100	1120	1100 ≤ 1120 → ++	3	3
+5	1500	1120	1500 > 1120 → --	2	3
+6	1500	1130	1500 > 1130 → --	1	3
+7	1500	1200	1500 > 1200 → --	0	3
+8	1500	1900	1500 ≤ 1900 → ++	1	3
+9	1800	1900	1800 ≤ 1900 → ++	2	3
+
+✅ Answer = 3
+
+Complexity
+
+Sorting: O(n log n)
+
+Traversal: O(n)
+
+Total: O(n log n)
+
+Space: O(1) (ignoring input arrays).
+
+Key Takeaways
+
+This is same as minimum meeting rooms problem.
+
+Use sorted arrival/departure arrays and two pointers.
+
+Always think: Maximum overlap of intervals = answer.
