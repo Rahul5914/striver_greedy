@@ -1,0 +1,125 @@
+🔹 Intuition
+
+When you get a sequence of customers paying with 5, 10, 20:
+
+The only way you fail is if at some point you can’t give change.
+
+So you must carefully manage your $5 bills, because they’re the foundation of change:
+
+$10 needs one $5.
+
+$20 needs $15 → either ($10 + $5) or (3 * $5).
+
+👉 Key idea:
+
+Always prefer to give back a $10 + $5 instead of 3 * $5.
+Why? Because $5 bills are “smaller coins” and are more versatile — almost every customer’s change depends on them.
+
+If you keep giving away too many $5s early, you may get stuck when later customers give $10.
+
+
+✅ So the intuition is:
+“$5 bills are precious. Save them whenever possible. Always use a $10 bill first when giving change for $20, because $5 is more flexible.”
+
+
+🔹 Problem Statement (Simplified)
+
+You are a lemonade seller. Each lemonade costs $5. Customers pay with $5, $10, or $20 bills (in that order).
+You must give correct change immediately for each customer.
+
+Return true if you can serve everyone correctly, otherwise false.
+
+🔹 Step 1: Logic
+
+We maintain how many $5 bills and $10 bills we have (since $20 can never be used for giving change).
+
+When a customer gives:
+
+$5 → no change needed → just increase count of $5.
+
+$10 → need to give $5 back → check if we have $5.
+
+If yes → give one $5, decrease count of $5, increase $10.
+
+If not → return false.
+
+$20 → need to give $15 back.
+
+Prefer giving $10 + $5 (to save $5 for future).
+
+If not possible → try giving 3 * $5.
+
+If neither works → return false.
+
+🔹 Step 2: Example Dry Run
+
+Input: bills = [5, 5, 5, 10, 20]
+
+Customer 1: pays $5. (No change). → fives=1, tens=0
+
+Customer 2: pays $5. (No change). → fives=2, tens=0
+
+Customer 3: pays $5. (No change). → fives=3, tens=0
+
+Customer 4: pays $10. Need $5 back. → give $5. → fives=2, tens=1
+
+Customer 5: pays $20. Need $15 back. Prefer $10+$5. → give it. → fives=1, tens=0
+
+✅ All served, return true.
+
+🔹 Step 3: Annotated Code with Inline Dry Run
+class Solution {
+public:
+    bool lemonadeChange(vector<int>& bills) {
+        int fives = 0, tens = 0;  // track how many $5 and $10 bills we have
+        
+        for (int bill : bills) {
+            
+            if (bill == 5) {
+                // Customer pays $5 → no change needed
+                fives++;
+                // Dry run trace: just increase count of $5
+                
+            } else if (bill == 10) {
+                // Customer pays $10 → must give back $5
+                if (fives > 0) {
+                    fives--;   // give one $5
+                    tens++;    // now we got a $10 bill
+                } else {
+                    return false;  // can't give change
+                }
+                // Dry run: example (after [5,5,10]): fives=1, tens=1
+                
+            } else { 
+                // bill == 20 → must give $15 back
+                if (tens > 0 && fives > 0) {
+                    // Best case: give one $10 and one $5
+                    tens--;
+                    fives--;
+                } else if (fives >= 3) {
+                    // Otherwise: give three $5 bills
+                    fives -= 3;
+                } else {
+                    return false;  // can't give change
+                }
+                // Dry run: example (after [5,5,5,10,20]): fives=1, tens=0
+            }
+        }
+        
+        return true;  // successfully gave change to all customers
+    }
+};
+
+🔹 Step 4: Complexity
+
+Time Complexity: O(n) → iterate over all customers.
+
+Space Complexity: O(1) → only track two counters (fives, tens).
+
+🔹 Step 5: Pattern & Trick to Remember
+
+This is a Greedy Problem:
+
+Always try to use larger bills first when giving change ($10+$5 before 3*$5).
+
+This preserves smaller bills ($5) for future customers.
